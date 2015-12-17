@@ -8,10 +8,9 @@ using namespace std;
 
 /* Define Macro */
 
-#define SERVER_PORT 7799
-
-#define WM_SOCKET_NOTIFY (WM_USER + 1)
-#define RECV_BUF_SIZE 10000
+#define SERVER_PORT			7799
+#define WM_SOCKET_NOTIFY	(WM_USER + 1)
+#define RECV_BUF_SIZE		10000
 
 /* Function Prototypes */
 
@@ -22,6 +21,8 @@ void write_html_header(int connfd);
 int parse_query_string(char *qs);
 void html_init(int connfd);
 void html_end(int connfd);
+void server_hanlder();
+void setup_connection(int index);
 
 //=================================================================
 //	Global Variables
@@ -163,6 +164,7 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						html_init(ssock);
 
 						/* start connection */
+						server_hanlder();
 
 						html_end(ssock);
 
@@ -266,6 +268,28 @@ void html_end(int connfd)
 }
 
 /*-------------------------------------------------------------*/
+/*---------------------- handle server ------------------------*/
+/*-------------------------------------------------------------*/
+
+void server_hanlder()
+{
+	for (int i = 0; i < REQUEST_MAX_NUM; i++) {
+		Request r = requests[i];
+		if (!(r.ip && r.port && r.filename)) continue;
+
+		/* connect */
+		setup_connection(i);
+	}
+	// serve
+}
+
+/* setup connection by given index of requests */
+void setup_connection(int index)
+{
+
+}
+
+/*-------------------------------------------------------------*/
 /*--------------------- req parse helper ----------------------*/
 /*-------------------------------------------------------------*/
 
@@ -278,9 +302,7 @@ void parse_key_value(char *token)
 
 	/* get key */
 	value_tok = strtok_s(token, "=", &saveptr);
-	//printf("key - %s<br>", value_tok);
 	sscanf(value_tok, "%c%d", &capital, &index);
-	//printf("capital-%c index-%d<br>", capital, index);
 	index--;
 
 	/* store value */
@@ -291,9 +313,8 @@ void parse_key_value(char *token)
 		if (value_tok) {
 			requests[index].ip = (char*) malloc(REQUEST_HOST_SIZE);
 			strcpy(requests[index].ip, value_tok);
-			//printf("value - %s<br>", requests[index].ip);
-			OutputDebugString("host");
-			OutputDebugString(requests[index].ip);
+			/*OutputDebugString("host");
+			OutputDebugString(requests[index].ip);*/
 		}
 	}
 	else if (capital == 'p') {
@@ -303,9 +324,8 @@ void parse_key_value(char *token)
 		if (value_tok) {
 			requests[index].port = (char *) malloc(REQUEST_PORT_SIZE);
 			strcpy(requests[index].port, value_tok);
-			//printf("value - %s<br>", requests[index].port);
-			OutputDebugString("port");
-			OutputDebugString(requests[index].port);
+			/*OutputDebugString("port");
+			OutputDebugString(requests[index].port);*/
 		}
 	}
 	else if (capital == 'f') {
@@ -315,9 +335,8 @@ void parse_key_value(char *token)
 		if (value_tok) {
 			requests[index].filename = (char *) malloc(REQUEST_FILENAME_SIZE);
 			strcpy(requests[index].filename, value_tok);
-			//printf("value - %s<br>", requests[index].filename);
-			OutputDebugString("file");
-			OutputDebugString(requests[index].filename);
+			/*OutputDebugString("file");
+			OutputDebugString(requests[index].filename);*/
 		}
 	}
 }
