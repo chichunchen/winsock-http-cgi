@@ -89,6 +89,7 @@
     <ClCompile Include="NP_hw3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="request.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

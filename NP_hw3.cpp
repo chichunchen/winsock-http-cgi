@@ -1,8 +1,10 @@
 #include <windows.h>
 #include <list>
+#include <stdlib.h>
 using namespace std;
 
 #include "resource.h"
+#include "request.h"
 
 /* Define Macro */
 
@@ -17,6 +19,7 @@ BOOL CALLBACK MainDlgProc(HWND, UINT, WPARAM, LPARAM);
 int EditPrintf (HWND, TCHAR *, ...);
 void write_cgi_header(int connfd);
 void write_html_header(int connfd);
+int parse_query_string(char *qs);
 
 //=================================================================
 //	Global Variables
@@ -25,6 +28,7 @@ list <SOCKET> Socks;
 char buf[RECV_BUF_SIZE];
 int  content_length;
 char request_filename[100];
+Request requests[5];
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow)
@@ -143,15 +147,14 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					query_str = strtok(NULL, "");
 					EditPrintf(hwndEdit, TEXT("=== query string: (%s) ===\r\n"), query_str);
 
+					parse_query_string(query_str);
+
 					break;
 				case FD_WRITE:
 				//Write your code for write event here
 
 					/* write success http format */
 					write_html_header(ssock);
-					//strcpy(buf, "<html><body><p>askl;dfjakl;sdf</p></body></html>\n");
-					//send(ssock, buf, strlen(buf), 0);
-					// closesocket(ssock);	/* Important !!! */
 
 					/* open file by the query from request */
 					EditPrintf(hwndEdit, TEXT("=== file: (%s) ===\r\n"), request_filename);
@@ -169,7 +172,7 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					if (fsize != fread(buf, fsize, 1, file_ptr)) {
 						OutputDebugString("fread failed");
 					}
-					OutputDebugString(buf);
+					//OutputDebugString(buf);
 					send(ssock, buf, strlen(buf), 0);
 					closesocket(ssock);
 
@@ -218,3 +221,82 @@ void write_html_header(int connfd)
 	send(connfd, content, strlen(content), 0);
 }
 
+/*-------------------------------------------------------------*/
+/*--------------------- req parse helper ----------------------*/
+/*-------------------------------------------------------------*/
+
+void parse_key_value(char *token)
+{
+	int index = 0;
+	char *value_tok,
+		*saveptr,
+		capital;
+
+	/* get key */
+	value_tok = strtok_s(token, "=", &saveptr);
+	//printf("key - %s<br>", value_tok);
+	sscanf(value_tok, "%c%d", &capital, &index);
+	//printf("capital-%c index-%d<br>", capital, index);
+	index--;
+
+	/* store value */
+	if (capital == 'h') {
+
+		value_tok = strtok_s(NULL, "\0", &saveptr);
+
+		if (value_tok) {
+			//requests[index].ip = malloc(REQUEST_HOST_SIZE);
+			//strcpy(requests[index].ip, value_tok);
+			//printf("value - %s<br>", requests[index].ip);
+			OutputDebugString("host");
+			OutputDebugString(value_tok);
+		}
+	}
+	else if (capital == 'p') {
+
+		value_tok = strtok_s(NULL, "\0", &saveptr);
+
+		if (value_tok) {
+			//requests[index].port = malloc(REQUEST_PORT_SIZE);
+			//strcpy(requests[index].port, value_tok);
+			//printf("value - %s<br>", requests[index].port);
+			OutputDebugString("port");
+			OutputDebugString(value_tok);
+		}
+	}
+	else if (capital == 'f') {
+
+		value_tok = strtok_s(NULL, "\0", &saveptr);
+
+		if (value_tok) {
+			//requests[index].filename = malloc(REQUEST_FILENAME_SIZE);
+			//strcpy(requests[index].filename, value_tok);
+			//printf("value - %s<br>", requests[index].filename);
+			OutputDebugString("file");
+			OutputDebugString(value_tok);
+		}
+	}
+}
+
+int parse_query_string(char *qs)
+{
+	char *token;
+
+	if (!qs) return -1;
+
+	token = strtok(qs, "&");
+	//OutputDebugString("token ");
+	//OutputDebugString(token);
+
+	int  i = 0;
+	while (token) {
+		parse_key_value(token);
+		token = strtok(NULL, "&");
+		//OutputDebugString("token ");
+		//OutputDebugString(token);
+
+		i++;
+	}
+
+	return 0;
+}
