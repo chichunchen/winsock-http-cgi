@@ -152,29 +152,35 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					break;
 				case FD_WRITE:
 				//Write your code for write event here
+					FILE *file_ptr;		/* for open the request html file */
 
-					/* write success http format */
-					write_html_header(ssock);
+					/* start our cgi client */
+					if (strcmp(request_filename, "hw3.cgi") == 0) {
+						write_html_header(ssock);
+						char *content = "hw3.cgi";
+						send(ssock, content, strlen(content), 0);
+						closesocket(ssock);
+					}
+					/* request_filename opened successfully */
+					else if ((file_ptr = fopen(request_filename, "rb")) != NULL) {
+						/* the request filename success */
+						write_html_header(ssock);
 
-					/* open file by the query from request */
-					EditPrintf(hwndEdit, TEXT("=== file: (%s) ===\r\n"), request_filename);
-					FILE *file_ptr;
-					file_ptr = fopen(request_filename, "rb");
-					if (file_ptr == NULL) {
-						OutputDebugString("fopen error");
+						/* open file by the query from request */
+						EditPrintf(hwndEdit, TEXT("=== file: (%s) ===\r\n"), request_filename);
+
+						fseek(file_ptr, 0, SEEK_END);
+						int fsize;
+						fsize = ftell(file_ptr);
+						fseek(file_ptr, 0, SEEK_SET);
+						ZeroMemory(buf, RECV_BUF_SIZE);
+						if (fsize != fread(buf, fsize, 1, file_ptr)) {
+							OutputDebugString("fread failed");
+						}
+						//OutputDebugString(buf);
+						send(ssock, buf, strlen(buf), 0);
+						closesocket(ssock);
 					}
-					
-					fseek(file_ptr, 0, SEEK_END);
-					int fsize;
-					fsize = ftell(file_ptr);
-					fseek(file_ptr, 0, SEEK_SET);
-					ZeroMemory(buf, RECV_BUF_SIZE);
-					if (fsize != fread(buf, fsize, 1, file_ptr)) {
-						OutputDebugString("fread failed");
-					}
-					//OutputDebugString(buf);
-					send(ssock, buf, strlen(buf), 0);
-					closesocket(ssock);
 
 					break;
 				case FD_CLOSE:
@@ -245,11 +251,11 @@ void parse_key_value(char *token)
 		value_tok = strtok_s(NULL, "\0", &saveptr);
 
 		if (value_tok) {
-			//requests[index].ip = malloc(REQUEST_HOST_SIZE);
-			//strcpy(requests[index].ip, value_tok);
+			requests[index].ip = (char*) malloc(REQUEST_HOST_SIZE);
+			strcpy(requests[index].ip, value_tok);
 			//printf("value - %s<br>", requests[index].ip);
 			OutputDebugString("host");
-			OutputDebugString(value_tok);
+			OutputDebugString(requests[index].ip);
 		}
 	}
 	else if (capital == 'p') {
@@ -257,11 +263,11 @@ void parse_key_value(char *token)
 		value_tok = strtok_s(NULL, "\0", &saveptr);
 
 		if (value_tok) {
-			//requests[index].port = malloc(REQUEST_PORT_SIZE);
-			//strcpy(requests[index].port, value_tok);
+			requests[index].port = (char *) malloc(REQUEST_PORT_SIZE);
+			strcpy(requests[index].port, value_tok);
 			//printf("value - %s<br>", requests[index].port);
 			OutputDebugString("port");
-			OutputDebugString(value_tok);
+			OutputDebugString(requests[index].port);
 		}
 	}
 	else if (capital == 'f') {
@@ -269,11 +275,11 @@ void parse_key_value(char *token)
 		value_tok = strtok_s(NULL, "\0", &saveptr);
 
 		if (value_tok) {
-			//requests[index].filename = malloc(REQUEST_FILENAME_SIZE);
-			//strcpy(requests[index].filename, value_tok);
+			requests[index].filename = (char *) malloc(REQUEST_FILENAME_SIZE);
+			strcpy(requests[index].filename, value_tok);
 			//printf("value - %s<br>", requests[index].filename);
 			OutputDebugString("file");
-			OutputDebugString(value_tok);
+			OutputDebugString(requests[index].filename);
 		}
 	}
 }
