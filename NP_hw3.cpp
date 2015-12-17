@@ -20,6 +20,8 @@ int EditPrintf (HWND, TCHAR *, ...);
 void write_cgi_header(int connfd);
 void write_html_header(int connfd);
 int parse_query_string(char *qs);
+void html_init(int connfd);
+void html_end(int connfd);
 
 //=================================================================
 //	Global Variables
@@ -157,8 +159,13 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					/* start our cgi client */
 					if (strcmp(request_filename, "hw3.cgi") == 0) {
 						write_html_header(ssock);
-						char *content = "hw3.cgi";
-						send(ssock, content, strlen(content), 0);
+						
+						html_init(ssock);
+
+						/* start connection */
+
+						html_end(ssock);
+
 						closesocket(ssock);
 					}
 					/* request_filename opened successfully */
@@ -179,6 +186,9 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						}
 						//OutputDebugString(buf);
 						send(ssock, buf, strlen(buf), 0);
+						
+						/* release resources */
+						fclose(file_ptr);
 						closesocket(ssock);
 					}
 
@@ -224,6 +234,34 @@ void write_cgi_header(int connfd)
 void write_html_header(int connfd)
 {
 	char *content = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+	send(connfd, content, strlen(content), 0);
+}
+
+/*-------------------------------------------------------------*/
+/*--------------------------- html ----------------------------*/
+/*-------------------------------------------------------------*/
+
+void html_init(int connfd)
+{
+	char *content = "<html> \
+        <head> \
+        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=big5\" /> \
+        <title>Network Programming Homework 3</title> \
+        </head> \
+        <body bgcolor=#336699> \
+        <font face=\"Courier New\" size=2 color=#FFFF99>";
+
+    char *table_html = "<table width=\"800\" border=\"1\">\
+                        <tr id=\"res_tr_head\"></tr>\
+                        <tr id=\"res_tr_content\"></tr>\
+                        </table>";
+	send(connfd, content, strlen(content), 0);
+	send(connfd, table_html, strlen(table_html), 0);
+}
+
+void html_end(int connfd)
+{
+	char *content = "</body></html>";
 	send(connfd, content, strlen(content), 0);
 }
 
