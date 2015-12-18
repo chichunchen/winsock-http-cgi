@@ -13,6 +13,7 @@ using namespace std;
 #define WM_SOCKET_NOTIFY	(WM_USER + 1)
 #define WM_SERVER_RESPONSE	7777
 #define RECV_BUF_SIZE		10000
+#define FILES_PATH_DIR		"C:\\Users\\lab1\\Documents\\GitHub\\winsock\\test\\"
 
 /* Function Prototypes */
 
@@ -25,7 +26,10 @@ void html_init(int connfd);
 void html_end(int connfd);
 void server_hanlder(HWND hwndEdit, HWND hwnd, SOCKET sock);
 void setup_connection(HWND hwndEdit, HWND hwnd, int index);
-void serve_connection();
+void serve_connection(HWND hwndEdit, HWND hwnd);
+void write_command_init(HWND hwndEdit, HWND hwnd, int index);
+void write_command_command();
+void write_command_next();
 
 //=================================================================
 //	Global Variables
@@ -270,7 +274,7 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						serve_req(ssock);
 
 						/* start server connections */
-						//server_hanlder(hwndEdit, hwnd, ssock);
+						server_hanlder(hwndEdit, hwnd, ssock);
 
 						html_end(ssock);
 
@@ -385,11 +389,11 @@ void server_hanlder(HWND hwndEdit, HWND hwnd, SOCKET sock)
 		if (!(r.ip && r.port && r.filename)) continue;
 
 		/* connect */
+		write_command_init(hwndEdit, hwnd, i);
 		setup_connection(hwndEdit, hwnd, i);
-		OutputDebugString("i\n");
 	}
 	// serve
-	serve_connection();
+	serve_connection(hwndEdit, hwnd);
 }
 
 /* setup connection by given index of requests */
@@ -398,8 +402,47 @@ void setup_connection(HWND hwndEdit, HWND hwnd, int index)
 
 }
 
-void serve_connection()
+/* serve connections */
+void serve_connection(HWND hwndEdit, HWND hwnd)
 {
+
+}
+
+void write_command_init(HWND hwndEdit, HWND hwnd, int ind) {
+	char filepath[1000] = FILES_PATH_DIR;
+	strcat(filepath, requests[ind].filename);
+	OutputDebugString(filepath);
+	if ((requests[ind].fp = fopen(filepath, "r")) == NULL){
+		EditPrintf(hwndEdit, TEXT("fopen error: %d\r\n"), errno);
+	}
+}
+
+void write_command_close(int ind) {
+	fclose(requests[ind].fp);
+}
+
+void write_command_next(SOCKET sock, int ind) {
+
+	int n, r;
+	char buf[RECV_BUF_SIZE];
+	if (!fgets(buf, RECV_BUF_SIZE, requests[ind].fp)) {
+		OutputDebugString("fgets error");
+		return;
+	}
+
+	// write to html client
+	write_content_at(sock, ind, wrap_html(buf), 1);
+	if (buf[0] == '\n')	return;
+
+	// write to server
+	//EditPrintf(hwndEdit, TEXT("=== write_command_next send: Start===\r\n%s\r\n=== End ===\r\n"), buf);
+	r = send(requests[ind].socket, buf, strlen(buf), 0);
+	if (r == SOCKET_ERROR) {
+		OutputDebugString("send error");
+		closesocket(requests[ind].socket);
+		WSACleanup();
+		return;
+	}
 
 }
 
