@@ -26,7 +26,6 @@ void html_init(int connfd);
 void html_end(int connfd);
 void server_hanlder(HWND hwndEdit, HWND hwnd, SOCKET sock);
 int setup_connection(HWND hwndEdit, HWND hwnd, int index);
-void serve_connection(HWND hwndEdit, HWND hwnd);
 void write_command_init(HWND hwndEdit, HWND hwnd, int index);
 void write_command_command();
 void write_command_next();
@@ -39,6 +38,8 @@ char buf[RECV_BUF_SIZE];
 int  content_length;
 char request_filename[100];
 Request requests[5];
+SOCKET CurrentSocket;
+int ServerCount = 0;
 
 void WriteToSock(SOCKET sock, char *s) {
 
@@ -239,6 +240,7 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				case FD_READ:
 					ZeroMemory(buf, RECV_BUF_SIZE);
 					content_length = recv(ssock, buf, RECV_BUF_SIZE, 0);
+					CurrentSocket = ssock;
 					EditPrintf(hwndEdit, TEXT("=== length: (%d) ===\r\n"), content_length);
 					EditPrintf(hwndEdit, TEXT("=== buf: \r\n %s ===\r\n"), buf);
 
@@ -310,7 +312,52 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 					break;
 			};
 			break;
-		
+
+		/* response to remote server */
+		case SERVER_RESPONSE:
+			int i, r;
+			EditPrintf(hwndEdit, TEXT("get server response: %x\r\n"), WSAGETSELECTEVENT(lParam));
+			switch (WSAGETSELECTEVENT(lParam)) {
+			case FD_ACCEPT:
+				EditPrintf(hwndEdit, TEXT("=== [Server] Accept one new client(%d), List size:%d ===\r\n"), ssock, Socks.size());
+				break;
+			case FD_READ:
+				for (i = 0; i < REQUEST_MAX_NUM; i++) {
+					csock = requests[i].socket;
+					do {
+						memset(buf, 0, sizeof(buf));
+						r = recv(csock, buf, RECV_BUF_SIZE, 0);
+						if (r > 0) {
+							EditPrintf(hwndEdit, TEXT("=== [server] recv: START ===\r\n%s\r\n== recv: END ==\r\n"), buf);
+						}
+						else if (r == 0) {
+							closesocket(csock);
+							EditPrintf(hwndEdit, TEXT("[server] connection closed\r\n"));
+						}
+						else {
+							EditPrintf(hwndEdit, TEXT("[server] recv failed: %d\r\n"), WSAGetLastError());
+						}
+					} while (r > 0);
+				}
+
+				break;
+			case FD_WRITE:
+				EditPrintf(hwndEdit, TEXT("=== [Server] fd write ===\r\n"));
+				break;
+			case FD_CLOSE:
+				EditPrintf(hwndEdit, TEXT("=== [Server] fd close ===\r\n"));
+				ServerCount--;
+				if (ServerCount == 0) {
+					for (i = 0; i < REQUEST_MAX_NUM; i++) {
+						if (requests[i].ip)		requests[i].ip = NULL;
+						if (requests[i].port)	requests[i].ip = NULL;
+						if (requests[i].filename)	requests[i].filename = NULL;
+						if (requests[i].fp)		fclose(requests[i].fp);
+					}
+				}
+				break;
+			};
+			break;
 		default:
 			return FALSE;
 
@@ -391,9 +438,8 @@ void server_hanlder(HWND hwndEdit, HWND hwnd, SOCKET sock)
 		/* connect */
 		write_command_init(hwndEdit, hwnd, i);
 		setup_connection(hwndEdit, hwnd, i);
+		ServerCount++;
 	}
-	// serve
-	serve_connection(hwndEdit, hwnd);
 }
 
 /* setup connection by given index of requests */
@@ -455,12 +501,6 @@ int setup_connection(HWND hwndEdit, HWND hwnd, int index)
 	requests[index].socket = csock;
 
 	return 0;
-}
-
-/* serve connections */
-void serve_connection(HWND hwndEdit, HWND hwnd)
-{
-
 }
 
 void write_command_init(HWND hwndEdit, HWND hwnd, int ind) {
