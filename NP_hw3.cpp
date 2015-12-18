@@ -28,7 +28,8 @@ void server_hanlder(HWND hwndEdit, HWND hwnd, SOCKET sock);
 int setup_connection(HWND hwndEdit, HWND hwnd, int index);
 void write_command_init(HWND hwndEdit, HWND hwnd, int index);
 void write_command_command();
-void write_command_next();
+void write_command_next(HWND hwndEdit, HWND hwnd, SOCKET sock, int index);
+void HandleServerResponse(HWND hwndEdit, HWND hwnd, SOCKET sock, int ind, char *buf);
 
 //=================================================================
 //	Global Variables
@@ -279,8 +280,6 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						server_hanlder(hwndEdit, hwnd, ssock);
 
 						html_end(ssock);
-
-						closesocket(ssock);
 					}
 					/* request_filename opened successfully */
 					else if ((file_ptr = fopen(request_filename, "rb")) != NULL) {
@@ -329,6 +328,7 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						r = recv(csock, buf, RECV_BUF_SIZE, 0);
 						if (r > 0) {
 							EditPrintf(hwndEdit, TEXT("=== [server] recv: START ===\r\n%s\r\n== recv: END ==\r\n"), buf);
+							HandleServerResponse(hwndEdit, hwnd, ssock, i, buf);
 						}
 						else if (r == 0) {
 							closesocket(csock);
@@ -503,6 +503,23 @@ int setup_connection(HWND hwndEdit, HWND hwnd, int index)
 	return 0;
 }
 
+int contain_prompt(char *s) {
+	int i;
+	for (i = 0; i < strlen(s); i++) {
+		if (s[i] == '%')	return 1;
+	}
+	return 0;
+}
+
+void HandleServerResponse(HWND hwndEdit, HWND hwnd, SOCKET sock, int ind, char *buf) {
+	EditPrintf(hwndEdit, TEXT("=== Handle Server Response: Start===\r\n%s\r\n=== End ===\r\n"), buf);
+	write_content_at(sock, ind, wrap_html(buf), 0);
+	if (contain_prompt(buf)) {
+		// should send
+		write_command_next(hwndEdit, hwnd, sock, ind);
+	}
+}
+
 void write_command_init(HWND hwndEdit, HWND hwnd, int ind) {
 	char filepath[1000] = FILES_PATH_DIR;
 	strcat(filepath, requests[ind].filename);
@@ -516,7 +533,7 @@ void write_command_close(int ind) {
 	fclose(requests[ind].fp);
 }
 
-void write_command_next(SOCKET sock, int ind) {
+void write_command_next(HWND hwndEdit, HWND hwnd, SOCKET sock, int ind) {
 
 	int n, r;
 	char buf[RECV_BUF_SIZE];
