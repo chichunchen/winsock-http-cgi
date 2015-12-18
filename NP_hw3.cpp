@@ -11,7 +11,7 @@ using namespace std;
 #define DEBUG				0
 #define SERVER_PORT			7799
 #define WM_SOCKET_NOTIFY	(WM_USER + 1)
-#define WM_SERVER_RESPONSE	7777
+#define SERVER_RESPONSE	7777
 #define RECV_BUF_SIZE		10000
 #define FILES_PATH_DIR		"C:\\Users\\lab1\\Documents\\GitHub\\winsock\\test\\"
 
@@ -25,7 +25,7 @@ int parse_query_string(char *qs);
 void html_init(int connfd);
 void html_end(int connfd);
 void server_hanlder(HWND hwndEdit, HWND hwnd, SOCKET sock);
-void setup_connection(HWND hwndEdit, HWND hwnd, int index);
+int setup_connection(HWND hwndEdit, HWND hwnd, int index);
 void serve_connection(HWND hwndEdit, HWND hwnd);
 void write_command_init(HWND hwndEdit, HWND hwnd, int index);
 void write_command_command();
@@ -397,9 +397,64 @@ void server_hanlder(HWND hwndEdit, HWND hwnd, SOCKET sock)
 }
 
 /* setup connection by given index of requests */
-void setup_connection(HWND hwndEdit, HWND hwnd, int index)
+int setup_connection(HWND hwndEdit, HWND hwnd, int index)
 {
+	/* Initialize Winsock */
+	WSADATA wsaData;
+	int r = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (r != NO_ERROR) {
+		EditPrintf(hwndEdit, TEXT("WSAStartup function failed with error: %d\r\n"), r);
+		return 1;
+	}
 
+	/* Create a SOCKET for connecting to server */
+	SOCKET csock;
+	csock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (csock == INVALID_SOCKET) {
+		EditPrintf(hwndEdit, TEXT("socket function failed with error: %ld\r\n"), WSAGetLastError());
+		WSACleanup();
+		return 1;
+	}
+
+	/* The sockaddr_in structure specifies the address family, 
+	   Ip address, and port of the server to be connected to */
+	struct hostent *hostname;
+	hostname = gethostbyname(requests[index].ip);
+	if (hostname == NULL) {
+		EditPrintf(hwndEdit, TEXT("get hostname failed with error: %ld\r\n"), WSAGetLastError());
+		return 1;
+	}
+
+	sockaddr_in clientService;
+	clientService.sin_family = AF_INET;
+	memcpy(&clientService.sin_addr, hostname->h_addr_list[0], hostname->h_length);
+	clientService.sin_port = htons(atoi(requests[index].port));
+
+	/* Connect to server */
+	r = connect(csock, (SOCKADDR *)& clientService, sizeof (clientService));
+	if (r == SOCKET_ERROR) {
+		EditPrintf(hwndEdit, TEXT("connect function failed with error: %ld\r\n"), WSAGetLastError());
+		r = closesocket(csock);
+		if (r == SOCKET_ERROR) {
+			EditPrintf(hwndEdit, TEXT("closesocket function failed with error: %ld\r\n"), WSAGetLastError());
+		}
+		WSACleanup();
+		return 1;
+	}
+
+	EditPrintf(hwndEdit, TEXT("connected to %s\r\n"), requests[index].ip);
+	int err = WSAAsyncSelect(csock, hwnd, SERVER_RESPONSE, FD_ACCEPT | FD_CLOSE | FD_READ | FD_WRITE);
+
+	if (err == SOCKET_ERROR) {
+		EditPrintf(hwndEdit, TEXT("=== Error: select error ===\r\n"));
+		closesocket(csock);
+		WSACleanup();
+		return 1;
+	}
+
+	requests[index].socket = csock;
+
+	return 0;
 }
 
 /* serve connections */

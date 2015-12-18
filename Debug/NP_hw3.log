@@ -1,4 +1,4 @@
-﻿Build started 2015/12/18 下午 04:52:56.
+﻿Build started 2015/12/18 下午 05:06:05.
      1>Project "C:\Users\lab1\Documents\GitHub\winsock\NP_hw3.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt NP_hw3.cpp
@@ -25,25 +25,26 @@
                  c:\program files (x86)\microsoft visual studio 12.0\vc\include\string.h(204) : see declaration of 'strtok'
      1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(284): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(211) : see declaration of 'fopen'
-     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(413): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(468): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 12.0\vc\include\string.h(118) : see declaration of 'strcat'
-     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(415): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(470): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(211) : see declaration of 'fopen'
-     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(426): warning C4101: 'n' : unreferenced local variable
-     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(462): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(481): warning C4101: 'n' : unreferenced local variable
+     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(517): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(304) : see declaration of 'sscanf'
-     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(472): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(527): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 12.0\vc\include\string.h(112) : see declaration of 'strcpy'
-     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(483): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(538): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 12.0\vc\include\string.h(112) : see declaration of 'strcpy'
-     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(494): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\lab1\documents\github\winsock\np_hw3.cpp(549): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 12.0\vc\include\string.h(112) : see declaration of 'strcpy'
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"Debug\NP_hw3.exe" /INCREMENTAL /NOLOGO ws2_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"Debug\NP_hw3.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Debug\NP_hw3.lib" /MACHINE:X86 /SAFESEH Debug\NP_hw3.res
          Debug\NP_hw3.obj
+     1>NP_hw3.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/SAFESEH' specification
          NP_hw3.vcxproj -> C:\Users\lab1\Documents\GitHub\winsock\Debug\NP_hw3.exe
      1>Done Building Project "C:\Users\lab1\Documents\GitHub\winsock\NP_hw3.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.03
+Time Elapsed 00:00:03.17
