@@ -18,12 +18,24 @@
     <ClCompile Include="NP_hw3.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
+    <ClCompile Include="html.cpp">
+      <Filter>標頭檔</Filter>
+    </ClCompile>
+    <ClCompile Include="parser.cpp">
+      <Filter>標頭檔</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="request.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="html.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="parser.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>

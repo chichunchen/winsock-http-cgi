@@ -86,9 +86,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="html.cpp" />
     <ClCompile Include="NP_hw3.cpp" />
+    <ClCompile Include="parser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="html.h" />
+    <ClInclude Include="parser.h" />
     <ClInclude Include="request.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

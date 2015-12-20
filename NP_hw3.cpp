@@ -4,14 +4,16 @@
 using namespace std;
 
 #include "resource.h"
+#include "parser.h"
 #include "request.h"
+#include "html.h"
 
 /* Define Macro */
 
 #define DEBUG				0
 #define SERVER_PORT			7799
 #define WM_SOCKET_NOTIFY	(WM_USER + 1)
-#define SERVER_RESPONSE	7777
+#define SERVER_RESPONSE		7777
 #define RECV_BUF_SIZE		10000
 #define FILES_PATH_DIR		"C:\\Users\\lab1\\Documents\\GitHub\\winsock\\test\\"
 
@@ -21,7 +23,6 @@ BOOL CALLBACK MainDlgProc(HWND, UINT, WPARAM, LPARAM);
 int EditPrintf (HWND, TCHAR *, ...);
 void write_cgi_header(int connfd);
 void write_html_header(int connfd);
-int parse_query_string(char *qs);
 void html_init(int connfd);
 void html_end(int connfd);
 void server_hanlder(HWND hwndEdit, HWND hwnd, SOCKET sock);
@@ -39,81 +40,29 @@ char buf[RECV_BUF_SIZE];
 int  content_length;
 char request_filename[100];
 Request requests[5];
-SOCKET CurrentSocket;
 int ServerCount = 0;
 
-void WriteToSock(SOCKET sock, char *s) {
-
-	int r;
-
-	r = send(sock, s, strlen(s), 0);
+void WriteToSock(SOCKET sock, char *s)
+{
+	int r = send(sock, s, strlen(s), 0);
 	if (r == SOCKET_ERROR) {
 		OutputDebugString("=== Error: socket send ===\r\n");
 		WSACleanup();
 		return;
 	}
-
 }
 
 // HTML Client
-char *replace_str(const char *str, const char *old, const char *new_str) {
 
-	char *ret, *r;
-	const char *p, *q;
-	int oldlen = strlen(old);
-	int count, retlen, newlen = strlen(new_str);
-	int samesize = (oldlen == newlen), l;
-
-	if (!samesize) {
-		for (count = 0, p = str; (q = strstr(p, old)) != NULL; p = q + oldlen)
-			count++;
-		retlen = p - str + strlen(p) + count * (newlen - oldlen);
-	}
-	else
-		retlen = strlen(str);
-
-	if ((ret = (char *)malloc(retlen + 1)) == NULL)
-		return NULL;
-
-	r = ret, p = str;
-	while (1) {
-		if (!samesize && !count--)
-			break;
-		if ((q = strstr(p, old)) == NULL)
-			break;
-		l = q - p;
-		memcpy(r, p, l);
-		r += l;
-		memcpy(r, new_str, newlen);
-		r += newlen;
-		p = q + oldlen;
-	}
-	strcpy(r, p);
-
-	return ret;
-
-}
-
-char *wrap_html(char *s) {
-	fprintf(stderr, "wrapping:\n%s\n", s);
-	char *r;
-	r = s;
-	r = replace_str(r, "&", "&amp;");
-	r = replace_str(r, "\"", "&quot;");
-	r = replace_str(r, "<", "&lt;");
-	r = replace_str(r, ">", "&gt;");
-	r = replace_str(r, "\r\n", "\n");
-	r = replace_str(r, "\n", "<br />");
-	return r;
-}
-
-void write_head_at(SOCKET sock, int num, char *_content) {
+void write_head_at(SOCKET sock, int num, char *_content)
+{
 	char content[RECV_BUF_SIZE];
 	sprintf(content, "<script>document.all['res_tr_head'].innerHTML += \"<td>%s</td>\";</script>", _content);
 	WriteToSock(sock, content);
 }
 
-void write_content_at(SOCKET sock, int num, char *_content, int bold) {
+void write_content_at(SOCKET sock, int num, char *_content, int bold)
+{
 	char content[RECV_BUF_SIZE];
 	if (bold)
 		sprintf(content, "<script>document.all('c-%d').innerHTML += \"<b>%s</b>\";</script>", num, _content);
@@ -122,7 +71,8 @@ void write_content_at(SOCKET sock, int num, char *_content, int bold) {
 	WriteToSock(sock, content);
 }
 
-void write_content_init(SOCKET sock, int num) {
+void write_content_init(SOCKET sock, int num)
+{
 	char content[RECV_BUF_SIZE];
 	sprintf(content, "<script>\
 					 		    document.all('res_tr_content').innerHTML += \"\
@@ -130,14 +80,14 @@ void write_content_init(SOCKET sock, int num) {
 	WriteToSock(sock, content);
 }
 
-void serve_req_at(SOCKET sock, int num) {
-
+void serve_req_at(SOCKET sock, int num)
+{
 	write_head_at(sock, num, requests[num].ip);
 	write_content_init(sock, num);
-
 }
 
-void serve_req(SOCKET sock) {
+void serve_req(SOCKET sock)
+{
 	int i;
 	for (i = 0; i < REQUEST_MAX_NUM; i++) {
 		Request r = requests[i];
@@ -241,7 +191,6 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				case FD_READ:
 					ZeroMemory(buf, RECV_BUF_SIZE);
 					content_length = recv(ssock, buf, RECV_BUF_SIZE, 0);
-					CurrentSocket = ssock;
 					EditPrintf(hwndEdit, TEXT("=== length: (%d) ===\r\n"), content_length);
 					EditPrintf(hwndEdit, TEXT("=== buf: \r\n %s ===\r\n"), buf);
 
@@ -503,7 +452,8 @@ int setup_connection(HWND hwndEdit, HWND hwnd, int index)
 	return 0;
 }
 
-int contain_prompt(char *s) {
+int contain_prompt(char *s)
+{
 	int i;
 	for (i = 0; i < strlen(s); i++) {
 		if (s[i] == '%')	return 1;
@@ -511,7 +461,8 @@ int contain_prompt(char *s) {
 	return 0;
 }
 
-void HandleServerResponse(HWND hwndEdit, HWND hwnd, SOCKET sock, int ind, char *buf) {
+void HandleServerResponse(HWND hwndEdit, HWND hwnd, SOCKET sock, int ind, char *buf)
+{
 	EditPrintf(hwndEdit, TEXT("=== Handle Server Response: Start===\r\n%s\r\n=== End ===\r\n"), buf);
 	write_content_at(sock, ind, wrap_html(buf), 0);
 	if (contain_prompt(buf)) {
@@ -520,7 +471,8 @@ void HandleServerResponse(HWND hwndEdit, HWND hwnd, SOCKET sock, int ind, char *
 	}
 }
 
-void write_command_init(HWND hwndEdit, HWND hwnd, int ind) {
+void write_command_init(HWND hwndEdit, HWND hwnd, int ind)
+{
 	char filepath[1000] = FILES_PATH_DIR;
 	strcat(filepath, requests[ind].filename);
 	OutputDebugString(filepath);
@@ -533,7 +485,8 @@ void write_command_close(int ind) {
 	fclose(requests[ind].fp);
 }
 
-void write_command_next(HWND hwndEdit, HWND hwnd, SOCKET sock, int ind) {
+void write_command_next(HWND hwndEdit, HWND hwnd, SOCKET sock, int ind)
+{
 
 	int n, r;
 	char buf[RECV_BUF_SIZE];
@@ -555,80 +508,4 @@ void write_command_next(HWND hwndEdit, HWND hwnd, SOCKET sock, int ind) {
 		WSACleanup();
 		return;
 	}
-
-}
-
-/*-------------------------------------------------------------*/
-/*--------------------- req parse helper ----------------------*/
-/*-------------------------------------------------------------*/
-
-void parse_key_value(char *token)
-{
-	int index = 0;
-	char *value_tok,
-		*saveptr,
-		capital;
-
-	/* get key */
-	value_tok = strtok_s(token, "=", &saveptr);
-	sscanf(value_tok, "%c%d", &capital, &index);
-	index--;
-
-	/* store value */
-	if (capital == 'h') {
-
-		value_tok = strtok_s(NULL, "\0", &saveptr);
-
-		if (value_tok) {
-			requests[index].ip = (char*) malloc(REQUEST_HOST_SIZE);
-			strcpy(requests[index].ip, value_tok);
-			/*OutputDebugString("host");
-			OutputDebugString(requests[index].ip);*/
-		}
-	}
-	else if (capital == 'p') {
-
-		value_tok = strtok_s(NULL, "\0", &saveptr);
-
-		if (value_tok) {
-			requests[index].port = (char *) malloc(REQUEST_PORT_SIZE);
-			strcpy(requests[index].port, value_tok);
-			/*OutputDebugString("port");
-			OutputDebugString(requests[index].port);*/
-		}
-	}
-	else if (capital == 'f') {
-
-		value_tok = strtok_s(NULL, "\0", &saveptr);
-
-		if (value_tok) {
-			requests[index].filename = (char *) malloc(REQUEST_FILENAME_SIZE);
-			strcpy(requests[index].filename, value_tok);
-			/*OutputDebugString("file");
-			OutputDebugString(requests[index].filename);*/
-		}
-	}
-}
-
-int parse_query_string(char *qs)
-{
-	char *token, *save_ptr;
-
-	if (!qs) return -1;
-
-	token = strtok_s(qs, "&", &save_ptr);
-	//OutputDebugString("token ");
-	//OutputDebugString(token);
-
-	int  i = 0;
-	while (token) {
-		parse_key_value(token);
-		token = strtok_s(NULL, "&", &save_ptr);
-		//OutputDebugString("token ");
-		//OutputDebugString(token);
-
-		i++;
-	}
-
-	return 0;
 }
