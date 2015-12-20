@@ -114,7 +114,7 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	int err;
 
 
-	switch(Message) 
+	switch(Message)
 	{
 		case WM_INITDIALOG:
 			hwndEdit = GetDlgItem(hwnd, IDC_RESULT);
@@ -298,10 +298,11 @@ BOOL CALLBACK MainDlgProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 				ServerCount--;
 				if (ServerCount == 0) {
 					for (i = 0; i < REQUEST_MAX_NUM; i++) {
-						if (requests[i].ip)		requests[i].ip = NULL;
-						if (requests[i].port)	requests[i].ip = NULL;
+						if (requests[i].ip)			requests[i].ip = NULL;
+						if (requests[i].port)		requests[i].port = NULL;
+						if (requests[i].socket)		requests[i].socket = 0;
 						if (requests[i].filename)	requests[i].filename = NULL;
-						if (requests[i].fp)		fclose(requests[i].fp);
+						if (requests[i].fp)			fclose(requests[i].fp);
 					}
 				}
 				break;
@@ -487,7 +488,6 @@ void write_command_close(int ind) {
 
 void write_command_next(HWND hwndEdit, HWND hwnd, SOCKET sock, int ind)
 {
-
 	int n, r;
 	char buf[RECV_BUF_SIZE];
 	if (!fgets(buf, RECV_BUF_SIZE, requests[ind].fp)) {
